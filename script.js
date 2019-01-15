@@ -1,46 +1,65 @@
-function sum(a, b) {
-    return a + b;
-}
+function sum() {
+    console.log(1);
+    return [].reduce.call(arguments, (acc, el) => acc+=el);
+  }
+  
+  const prom = x => new Promise(res => {
+    console.log(2);
+    setTimeout(res,2000,x);
+  })
+  
+  function pow() {
+    console.log(3);
+    return [].reduce.call(arguments, (acc, el) => acc*=el);
+  }
+  
+  const arr = [1,2,3,4]
+  
+  function *gen() {
+    const a = yield sum.bind(null, ...arr);
+    const b = yield prom(a);
+    const c = yield pow.bind(null, ...arr);
+    const d = yield arr;
+    yield a + b + c + d;
+  }
 
-let val_2 = new Promise(res => setTimeout(res(10), 1000));
-let val_3 = 20;
-let val_4 = { name: 'Ivan' };
 
-function* gen() {
-    const a = yield () => sum(1, 2);
-    const b = yield val_2;
-    const c = yield val_3;
-    const d = yield val_4;
-    console.log(a, b, c, d);
-}
 
-let iterator = gen();
 
 function runner(iterator) {
+    const arr = [];
+  
+    return new Promise( (resolve) => {
 
-    let arr = [];
-    let item = null;
-    let data = iterator.next();
 
-    while (!data.done) {
-        if (typeof data.value === 'function') {
-            item = data.value();
-        } else {
-            item = data.value;
+        execute(iterator);
+
+
+       function execute(iterator, _yield){
+        let next = iterator.next(_yield);
+  
+        if (!next.done) {
+          if (next.value instanceof Promise) {
+            next.value.then(
+              result => {
+                arr.push(result);
+                execute(iterator, result)
+              })
+          } else if (typeof next.value === 'function') {
+            arr.push(next.value());
+            execute(iterator, next.value())
+          } else {
+            arr.push(next.value);
+            execute(iterator, next.value);
+          }
+        } 
+        else {
+          resolve(arr);
         }
+      }
 
-        arr.push(item);
-        data = iterator.next(item);
-    }
 
-    arr.forEach((item, i) => {
-        if (item instanceof Promise) {
-            item.then(data => arr[i] = data);
-        }
     });
+  }
 
-    return Promise.resolve(arr);
-}
-
-runner(iterator).then(data => console.log(data)); // 3, 10, 20, {name: 'ivan'}
-
+  runner(gen()).then(data => console.log(data.pop() === '441,2,3,4' ? "Good Job" : "You are fail this task"))
