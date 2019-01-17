@@ -36,7 +36,7 @@ function runner(iterator) {
 
 
        function execute(iterator, _yield){
-        let next = iterator.next(_yield);
+        const next = iterator.next(_yield);
   
         if (!next.done) {
           if (next.value instanceof Promise) {
