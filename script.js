@@ -24,33 +24,30 @@ function sum() {
   }
 
 
-
-
 function runner(iterator) {
     const arr = [];
   
     return new Promise( (resolve) => {
+      
+       execute(iterator);
 
-
-        execute(iterator);
-
-
-       function execute(iterator, value){
-        const next = iterator.next(value);
+       function execute(iterator, data){
+        const {done, value} = iterator.next(data);
   
-        if (!next.done) {
-          if (next.value instanceof Promise) {
-            next.value.then(
+        if (!done) {
+          if (value instanceof Promise) {
+            value.then(
               result => {
                 arr.push(result);
-                execute(iterator, result)
-              })
-          } else if (typeof next.value === 'function') {
-            arr.push(next.value());
-            execute(iterator, next.value())
+                execute(iterator, result);
+              });
+          } else if (typeof value === 'function') {
+            const data = value();
+            arr.push(data);
+            execute(iterator, data);
           } else {
-            arr.push(next.value);
-            execute(iterator, next.value);
+            arr.push(value);
+            execute(iterator, value);
           }
         } 
         else {
@@ -58,8 +55,7 @@ function runner(iterator) {
         }
       }
 
-
     });
   }
 
-  runner(gen()).then(data => console.log(data.pop() === '441,2,3,4' ? "Good Job" : "You are fail this task"))
+  runner(gen()).then(data => console.log(data.pop() === '441,2,3,4' ? "Good Job" : "You are fail this task"));
